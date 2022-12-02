@@ -7,8 +7,9 @@
 
 import UIKit
 
-class LoginViewController: UIViewController, SetupView {
+class LoginViewController: UIViewController {
 // MARK: - variables
+    var loginviewmodel = LoginViewModel()
     private lazy var logo: (stack: UIStackView, label: UILabel) = {
         let label = Create.label("Alistamento")
         label.textColor = Assets.Colors.whiteBlack
@@ -21,7 +22,7 @@ class LoginViewController: UIViewController, SetupView {
         label.textColor = Assets.Colors.whiteBlack
         return label
     }()
-    private lazy var email: (stackView: UIStackView, textField: UITextField) = {
+    lazy var email: (stackView: UIStackView, textField: UITextField) = {
         let emailTextField = Create.textField(placeholder: "Email")
         emailTextField.becomeFirstResponder()
         emailTextField.keyboardType = .namePhonePad
@@ -33,7 +34,7 @@ class LoginViewController: UIViewController, SetupView {
         return (stackView: stackView,
                 textField: emailTextField)
     }()
-    private lazy var password: (stackView: UIStackView, textField: UITextField) = {
+    lazy var password: (stackView: UIStackView, textField: UITextField) = {
         let passwordTextField = Create.textField(placeholder: "Senha")
         passwordTextField.isSecureTextEntry = true
         let margins = view.frame.height*0.02
@@ -41,7 +42,6 @@ class LoginViewController: UIViewController, SetupView {
             layoutMargins: UIEdgeInsets(top: margins, left: 0,
                                         bottom: margins, right: 0),
             arrangedSubviews: [passwordTextField])
-    
         return (stackView: stackView,
                 textField: passwordTextField)
     }()
@@ -60,16 +60,20 @@ class LoginViewController: UIViewController, SetupView {
         stackView.spacing = 50
         return scrollView
     }()
-    private lazy var forgotPasswordButton = Create.baseButton("Esqueci minha senha", titleColor: Assets.Colors.whiteBlack,
+    private lazy var forgotPasswordButton = Create.baseButton("Esqueci minha senha",
+                                                              titleColor: Assets.Colors.whiteBlack,
                                                               backgroundColor: nil) {_ in
         self.navigationController?.navigate(to: BooksViewController())
     }
     private lazy var signInButton = Create.baseButton("CRIAR UMA CONTA") {_ in
         self.navigationController?.navigate(to: RegisterNameViewController())
     }
-    private lazy var logInButton = Create.baseButton("ENTRAR") {_ in
-        self.navigationController?.navigate(to: FormViewController())
-    }
+    lazy var logInButton: UIButton =  {
+        let button = Create.baseButton("ENTRAR", titleColor: nil, backgroundColor: nil)
+        button.addTarget(self, action: #selector(hendleSingUp), for: .touchUpInside)
+        button.isEnabled = false
+        return button
+    }()
     private lazy var constraints = [
         scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
         scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
@@ -97,7 +101,12 @@ class LoginViewController: UIViewController, SetupView {
     }
     override func loadView() {
         super.loadView()
-        setup()
+        setupView()
+        setupConstraints()
+    }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureNotificationsObserves()
     }
 // MARK: - setup
     func setupView() {
@@ -109,4 +118,41 @@ class LoginViewController: UIViewController, SetupView {
     func setupConstraints() {
         view.addConstraints(constraints)
     }
+    func configureNotificationsObserves() {
+        email.textField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
+        email.textField.addTarget(self, action: #selector(textLowercased), for: .editingChanged)
+        password.textField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
+    }
+    @objc func textLowercased(_ sender: UITextField) {
+            guard sender.text != nil else {return}
+            sender.text? = sender.text?.lowercased() ?? ""
+        }
+    @objc func textDidChange(_ sender: UITextField) {
+        if sender == email.textField {
+            loginviewmodel.email = sender.text
+        } else {
+            loginviewmodel.password = sender.text
+        }
+            updateForm()
+    }
+    @objc func hendleSingUp() {
+        loginviewmodel.performLogin()
+        nextView()
+    }
+}
+
+extension LoginViewController: UpdateFormViewModel {
+    func updateForm() {
+        logInButton.backgroundColor = loginviewmodel.backgroundCollorButton
+        logInButton.setTitleColor(loginviewmodel.titleColorButton, for: .normal)
+        logInButton.isEnabled = loginviewmodel.formatIsValid
+    }
+}
+
+extension LoginViewController: AuthenticationDelegate {
+    func nextView() {
+        navigationController?.navigate(to: HomeViewController())
+    }
+    
+    
 }

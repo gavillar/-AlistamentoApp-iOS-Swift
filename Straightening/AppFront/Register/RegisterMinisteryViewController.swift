@@ -10,18 +10,16 @@ class RegisterMinisteryViewController: RegisterViewController {
     override func loadView() {
         super.loadView()
         title = "Ministério"
-        setupPickerView("⇩ Ministério", options: ["Pastoral",
-                                                  "Missões",
-                                                  "Família",
-                                                  "Discipulado",
-                                                  "Serviços",
-                                                  "Adoração"])
+        textFieldPicker.text = "Pastoral"
+        setupPickerView("⇩ Ministério", options: ["Pastoral", "Missões",
+                                                  "Família", "Discipulado",
+                                                  "Serviços", "Adoração"])
         button.addTarget(nil, action: #selector(buttonTarget), for: .touchUpInside)
+        unFreezeButton()
     }
 // MARK: - objc functions
     @objc func buttonTarget() {
-        registerviewmodel.setRegister()
-        self.navigationController?.navigate(to: FormViewController())
+        self.navigationController?.navigate(to: RegisterAdressViewController())
     }
 }
 

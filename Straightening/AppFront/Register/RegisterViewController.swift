@@ -6,9 +6,9 @@
 //
 import UIKit
 
-class RegisterViewController: UIViewController, SetupView {
+class RegisterViewController: UIViewController {
 // MARK: - Variables
-    let registerviewmodel = RegisterViewModel()
+    var registerViewModel: RegisterViewModel
     lazy var datePicker = DatePicker()
     lazy var base: (view: UIView, stack: UIStackView) = {
         let stackView = UIStackView()
@@ -24,6 +24,7 @@ class RegisterViewController: UIViewController, SetupView {
         stackView.centerYAnchor.constraint(equalTo: baseView.centerYAnchor).isActive = true
         return (view: baseView, stack: stackView)
     }()
+    lazy var textFieldPicker = PickerViewCustom()
     lazy var text: (field: BindingTextField, setPlaceholder: (String) -> Void) = {
         let textField = BindingTextField()
         base.stack.addArrangedSubview(textField)
@@ -36,12 +37,20 @@ class RegisterViewController: UIViewController, SetupView {
         }
         return (field: textField, setPlaceholder: setPlaceholder)
     }()
-
     lazy var button: UIButton = {
         let button = Create.baseButton("ENTRAR", titleColor: Assets.Colors.brown)
-        button.isUserInteractionEnabled = true
         return button
     }()
+// MARK: - init
+    init(_ registerViewModel: RegisterViewModel = RegisterViewModel()) {
+        self.registerViewModel = registerViewModel
+        print(self.registerViewModel.userToRegister)
+        super.init(nibName: nil, bundle: nil)
+        registerViewModel.delegate = self
+    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 // MARK: - override functions
     override func viewLayoutMarginsDidChange() {
         super.viewLayoutMarginsDidChange()
@@ -49,8 +58,11 @@ class RegisterViewController: UIViewController, SetupView {
     }
     override func loadView() {
         super.loadView()
-        setup()
-        hideKeyboardWhenTappedAround()
+        setupView()
+        setupConstraints()
+        freezeButton()
+        navigationController?.navigationBar.hideKeyboardWhenTappedAround()
+        view.hideKeyboardWhenTappedAround()
     }
 // MARK: - Setup
     func setupView() {
@@ -69,7 +81,6 @@ class RegisterViewController: UIViewController, SetupView {
         ])
     }
     func setupPickerView(_ title: String, options: [String]) {
-        let textFieldPicker = PickerViewCustom()
         textFieldPicker.attributedPlaceholder = NSAttributedString(string: title,
                                                              attributes: [
                                                                 NSAttributedString.Key.foregroundColor:
@@ -92,6 +103,17 @@ extension RegisterViewController: DatePickerDelegate {
         text.field.inputView = datePicker
     }
     func doneButtonTarget() {
-        dismissKeyboard()
+        view.dismissKeyboard()
+    }
+}
+
+extension RegisterViewController: RegisterViewModelDelegate {
+    func freezeButton() {
+        button.alpha = 0.5
+        button.isUserInteractionEnabled = false
+    }
+    func unFreezeButton() {
+        button.alpha = 1
+        button.isUserInteractionEnabled = true
     }
 }

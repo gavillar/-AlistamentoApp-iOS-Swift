@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class BookViewController: UIViewController, SetupView {
+final class BookViewController: UIViewController {
 // MARK: - variables
     private let bookViewModel: BookViewModel
     required init?(coder: NSCoder) {
@@ -38,11 +38,12 @@ final class BookViewController: UIViewController, SetupView {
 // MARK: - overrides
     override func loadView() {
         super.loadView()
-        setup()
-        title = bookViewModel.title
+        setupView()
+        setupConstraints()
     }
 // MARK: - setup
     func setupView() {
+        title = bookViewModel.title
         view.backgroundColor = Assets.Colors.whiteBlack
         view.addSubviews([bookCollectionView, text.scroll])
     }

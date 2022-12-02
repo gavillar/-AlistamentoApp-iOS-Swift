@@ -1,5 +1,5 @@
 //
-//  FormViewController.swift
+//  RegisterAdressViewController.swift
 //  Straightening
 //
 //  Created by user220831 on 11/9/22.
@@ -8,19 +8,16 @@
 import Foundation
 import UIKit
 
-class FormViewController: UIViewController, SetupView {
+class RegisterAdressViewController: UIViewController {
 // MARK: - var and let
-    private let formviewmodel = FormViewModel()
+    private let registeradressviewmodel = RegisterAdressViewModel()
     private lazy var baseView: UIView = {
         let verticalStack = VStack(addArrangedSubviews: [cepTextField,
                                                          streetLabel,
                                                          numberTextField,
                                                          districtLabel,
                                                          locationLabel])
-        streetLabel.isHidden = true
-        districtLabel.isHidden = true
-        locationLabel.isHidden = true
-        numberTextField.isHidden = true
+        
         let baseView = UIView()
         baseView.translatesAutoresizingMaskIntoConstraints = false
         baseView.addSubview(verticalStack)
@@ -29,11 +26,34 @@ class FormViewController: UIViewController, SetupView {
             .centerY()
         return baseView
     }()
-    let streetLabel = Create.label("", font: UIFont.boldSystemFont(ofSize: 22), alignment: .left, numberOfLines: 0)
-    let districtLabel = Create.label("", font: UIFont.boldSystemFont(ofSize: 18), alignment: .left, numberOfLines: 0)
-    let locationLabel = Create.label("", font: UIFont.boldSystemFont(ofSize: 18), alignment: .left, numberOfLines: 0)
-    let cepTextField = BindingTextField()
-    let numberTextField = Create.textField(textColor: Assets.Colors.whiteBlack, placeholder: "Número-Complemento")
+    let cepTextField: BindingTextField = {
+       let textfield = BindingTextField()
+        return textfield
+    }()
+    let streetLabel: UILabel = {
+        let label = Create.label("", font: UIFont.boldSystemFont(ofSize: 22), alignment: .left, numberOfLines: 0)
+        label.isHidden = true
+        return label
+    }()
+    let districtLabel: UILabel = {
+        let label = Create.label("", font: UIFont.boldSystemFont(ofSize: 18), alignment: .left, numberOfLines: 0)
+        label.isHidden = true
+        return label
+    }()
+    
+    let locationLabel: UILabel = {
+        let label = Create.label("", font: UIFont.boldSystemFont(ofSize: 18), alignment: .left, numberOfLines: 0)
+        label.isHidden = true
+        return label
+    }()
+    let numberTextField: UITextField = {
+        let textfield = UITextField()
+        textfield.attributedPlaceholder = NSAttributedString(string: "Número-Complemento",
+                                                                attributes: [NSAttributedString.Key.foregroundColor:
+                                                                                UIColor.white])
+        textfield.isHidden = true
+        return textfield
+    }()
 // MARK: - registerButton
     private lazy var registerButton = Create.baseButton("ENTRAR", titleColor: Assets.Colors.brown) {_ in
         self.navigationController?.navigate(to: LoginViewController())
@@ -46,14 +66,17 @@ class FormViewController: UIViewController, SetupView {
     override func loadView() {
         super.loadView()
         title = "Endereço"
-        setup()
-        formviewmodel.formViewModelDelegate = self
+        setupView()
+        setupConstraints()
+        registeradressviewmodel.formViewModelDelegate = self
     }
 // MARK: - setupView
     func setupView() {
         view.addSubviews([baseView, registerButton])
-        hideKeyboardWhenTappedAround()
+        view.hideKeyboardWhenTappedAround()
         setupCepTextField()
+        sendCep()
+        updateForm()
     }
 // MARK: - setupConstraints
     func setupConstraints() {
@@ -73,13 +96,9 @@ class FormViewController: UIViewController, SetupView {
             cepTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -40)
         
         ])
-        
     }
 // MARK: - setupCepTextField
     func setupCepTextField() {
-        cepTextField.bind { [weak self] text in
-            self?.formviewmodel.cep = text
-        }
         cepTextField.becomeFirstResponder()
         cepTextField.setUnderlineTextFieldBorderWhite()
         cepTextField.delegate = self
@@ -88,19 +107,21 @@ class FormViewController: UIViewController, SetupView {
                                                                 attributes: [NSAttributedString.Key.foregroundColor:
                                                                                 UIColor.white])
     }
+    func sendCep() {
+        cepTextField.bind { [weak self] text in
+            self?.registeradressviewmodel.cep = text
+        }
+    }
 // MARK: - tapCepTextField
         @objc func tapCepTextField(sender: UITextField) {
-            if validateCep(sender.text ?? "") {
-                formviewmodel.getApiCep()
-                streetLabel.isHidden = false
-                districtLabel.isHidden = false
-                locationLabel.isHidden = false
-                numberTextField.isHidden = false
+            guard let text = sender.text else {return}
+            if text.validateCep(text)  {
+                registeradressviewmodel.getApiCep()
             }
         }
 }
 
-extension FormViewController: FormViewModelProtocol {
+extension RegisterAdressViewController: RegisterAdressViewModelProtocol {
     func sendCep(cep: Cep) {
         Task {
             streetLabel.text = "Endereço:\n\n\(cep.logradouro ?? "")"
@@ -109,8 +130,16 @@ extension FormViewController: FormViewModelProtocol {
         }
     }
 }
+extension RegisterAdressViewController: UpdateFormAdressViewModel {
+    func updateForm() {
+        streetLabel.isHidden = false
+        districtLabel.isHidden = false
+        locationLabel.isHidden = false
+        numberTextField.isHidden = false
+    }
+}
 
-extension FormViewController: UITextFieldDelegate {
+extension RegisterAdressViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange,
                    replacementString string: String) -> Bool {
         let max = 8
