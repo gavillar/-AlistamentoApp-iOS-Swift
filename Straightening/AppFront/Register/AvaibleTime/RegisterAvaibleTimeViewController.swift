@@ -11,14 +11,16 @@ final class RegisterAvaibleTimeViewController: RegisterViewController {
     override func loadView() {
         super.loadView()
         title = "Disponibilidade"
-        textFieldPicker.text = "Manhã"
-        setupPickerView("⇩ Disponibilidade", options: ["Manhã", "Tarde",
-                                                       "Noite", "Todos Horários"])
-        button.addTarget(nil, action: #selector(buttonTarget), for: .touchUpInside)
+        registerView.textField.delegate = self
+        setTextFieldPlaceholder("Manhã")
+        pickerView.options = ["Manhã", "Tarde",
+                              "Noite", "Todos Horários"]
+        pickerView.pickerViewDelegate = self
+        registerView.button.addTarget(nil, action: #selector(buttonTarget), for: .touchUpInside)
         unFreezeButton()
     }
     @objc func buttonTarget() {
-        registerViewModel.userToRegister.avaibleTime = textFieldPicker.text
+        registerViewModel.userToRegister.avaibleTime = pickerView.selectedOption
         self.navigationController?.navigate(to: RegisterMinisteryViewController(registerViewModel))
     }
 }

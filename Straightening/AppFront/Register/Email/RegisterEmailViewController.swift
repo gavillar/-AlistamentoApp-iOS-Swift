@@ -11,16 +11,16 @@ final class RegisterEmailViewController: RegisterViewController {
     override func loadView() {
         super.loadView()
         title = "Email"
-        button.addTarget(nil, action: #selector(buttonTarget), for: .touchUpInside)
+        registerView.button.addTarget(nil, action: #selector(buttonTarget), for: .touchUpInside)
         setupText()
     }
 // This function sets parameters for the text property
     func setupText() {
-        text.setPlaceholder("Email")
-        text.field.becomeFirstResponder()
-        text.field.autocapitalizationType = .none
-        text.field.addTarget(self, action: #selector(tapEmailTextfield), for: .editingChanged)
-        text.field.addTarget(self, action: #selector(textLowercased), for: .editingChanged)
+        setTextFieldPlaceholder("Email")
+        registerView.textField.becomeFirstResponder()
+        registerView.textField.autocapitalizationType = .none
+        registerView.textField.addTarget(self, action: #selector(tapEmailTextfield), for: .editingChanged)
+        registerView.textField.addTarget(self, action: #selector(textLowercased), for: .editingChanged)
     }
 // This function restricts that capital letters can be entered in the text field
     @objc func textLowercased(_ sender: UITextField) {
@@ -30,21 +30,12 @@ final class RegisterEmailViewController: RegisterViewController {
 // This function validates if the email matches the regex
     @objc func tapEmailTextfield(_ sender: UITextField) {
         guard let value = sender.text else {return}
-        if registerViewModel.changeButton(condition: text.field.isValidEmail(value)) {
-            catchEmailText()
-        }
+        registerView.button.performSelection(condition: registerView.textField.isValidEmail(value))
     }
-// This function captures the text field to send to the viewmodel
-    func catchEmailText() {
-       text.field.bind {text in
-           self.registerViewModel.email = text
-       }
-    }
-
 // MARK: - objc functions
     @objc func buttonTarget() {
         print("tap email")
-        registerViewModel.userToRegister.email = text.field.text
+        registerViewModel.userToRegister.email = registerView.textField.text
         self.navigationController?.navigate(to: RegisterPasswordViewController(registerViewModel))
     }
 }
